@@ -1,0 +1,88 @@
+name: Veracode Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  veracode-sast-scan:
+    name: Veracode SAST Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Instalar dependências
+        run: npm install
+      
+      - name: Criar pacote para análise
+        run: |
+          zip -r veracode-package.zip . -x "node_modules/*" "*.git*" ".github/*"
+      
+      - name: Upload para Veracode
+        uses: veracode/veracode-uploadandscan-action@0.2.6
+        with:
+          appname: 'Node Goat - Vulnerable App'
+          createprofile: true
+          filepath: 'veracode-package.zip'
+          version: '${{ github.run_id }}-${{ github.run_number }}'
+          vid: '${{ secrets.VERACODE_API_ID }}'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'
+          scantimeout: 15
+          include: '*.js, *.json'
+          criticality: 'VeryHigh'
+  
+  veracode-sca-scan:
+    name: Veracode SCA (Agent-Based)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      
+      - name: Executar Veracode SCA Agent
+        env:
+          SRCCLR_API_TOKEN: '${{ secrets.SRCCLR_API_TOKEN }}'
+        run: |
+          curl -sSL https://download.sourceclear.com/ci.sh | sh -s scan --update-advisor --allow-dirty
+  
+  npm-audit:
+    name: NPM Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Instalar dependências
+        run: npm install
+      
+      - name: Executar npm audit
+        run: |
+          echo "=== NPM Security Audit ==="
+          npm audit --json > npm-audit-results.json || true
+          cat npm-audit-results.json
+      
+      - name: Mostrar resumo de vulnerabilidades
+        run: |
+          echo "=== Resumo de Vulnerabilidades ==="
+          npm audit || true
+      
+      - name: Upload dos resultados
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-results
+          path: npm-audit-results.json

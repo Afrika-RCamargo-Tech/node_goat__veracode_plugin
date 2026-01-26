@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const serialize = require('node-serialize');
-const libxmljs = require('libxmljs');
+const libxmljs = require('libxmljs2');
 const request = require('request');
 
 const app = express();
