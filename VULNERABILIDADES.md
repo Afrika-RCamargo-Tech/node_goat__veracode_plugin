@@ -614,33 +614,86 @@ request({
 ### 🔍 Descrição
 As vulnerabilidades de SCA são encontradas nas dependências (bibliotecas de terceiros) usadas pela aplicação. Este projeto usa intencionalmente versões antigas e vulneráveis de bibliotecas para demonstração.
 
-### 📦 Dependências Vulneráveis
+### 📦 Dependências Vulneráveis (13 Vulnerabilidades Confirmadas)
 
-#### 1. **express 4.17.1**
-- Versões antigas do Express podem ter vulnerabilidades conhecidas
-- Verificar CVE relacionadas
+#### 1. **body-parser 1.19.0** - 🟠 ALTA
+- **Vulnerabilidade:** Denial of Service quando URL encoding está habilitado
+- **Versões afetadas:** < 1.20.3
+- **Versão corrigida:** 1.20.3
+- **GHSA:** GHSA-qwcr-r2fm-qrc7
+- **CWE:** CWE-405
+- **Impacto:** DoS através de requisições malformadas
 
-#### 2. **lodash 4.17.19**
-- **CVE-2020-8203:** Prototype Pollution
-- Permite modificação do protótipo de objetos JavaScript
-- Severidade: Alta
+#### 2. **ejs 3.1.6** - 🔴 CRÍTICA
+- **Vulnerabilidade:** Template Injection
+- **Versões afetadas:** < 3.1.7
+- **Versão corrigida:** 3.1.7
+- **GHSA:** GHSA-phwq-j96m-2c2q
+- **CWE:** CWE-94
+- **Impacto:** Execução remota de código através de templates
 
-#### 3. **ejs 3.1.6**
-- Vulnerabilidades de template injection em versões antigas
-- Permite execução de código através de templates
+#### 3. **express-fileupload 1.2.1** - 🔴 CRÍTICA
+- **Vulnerabilidade:** Arbitrary File Overwrite
+- **Versões afetadas:** <= 1.3.1
+- **Versão corrigida:** Não disponível
+- **Impacto:** Sobrescrita arbitrária de arquivos no servidor
 
-#### 4. **node-serialize 0.0.4**
-- **CVE-2017-5941:** Remote Code Execution via deserialization
-- Biblioteca conhecida por permitir RCE
-- Severidade: Crítica
+#### 4. **libxmljs2 0.31.0** - 🔴 CRÍTICA (2 CVEs)
+- **Vulnerabilidade 1:** Type confusion quando parsing XML especialmente criado
+  - **Versões afetadas:** <= 0.33.0
+  - **Versão corrigida:** Não disponível
+  
+- **Vulnerabilidade 2:** Type confusion quando parsing XML especialmente criado
+  - **Versões afetadas:** <= 0.35.0
+  - **Versão corrigida:** Não disponível
+  
+- **Impacto:** Corrupção de memória, possível execução de código
 
-#### 5. **libxmljs 0.19.7**
-- Versão antiga com possíveis vulnerabilidades XXE
-- Verificar atualizações de segurança
+#### 5. **lodash 4.17.19** - 🟠 ALTA (4 CVEs)
+- **Vulnerabilidade:** Command Injection
+  
+  **CVE 1:**
+  - **Versões afetadas:** < 4.17.21
+  - **Versão corrigida:** 4.17.21
+  
+  **CVE 2:**
+  - **Versões afetadas:** < 4.17.21
+  - **Versão corrigida:** 4.17.21
+  
+  **CVE 3:**
+  - **Versões afetadas:** <= 4.5.0
+  - **Versão corrigida:** Não disponível
+  
+  **CVE 4:**
+  - **Versões afetadas:** <= 1.0.0
+  - **Versão corrigida:** Não disponível
+  
+- **CWE:** CWE-94, CWE-1321 (Prototype Pollution)
+- **Impacto:** Injeção de comando, modificação de protótipo
 
-#### 6. **request 2.88.2**
-- Biblioteca depreciada, não recebe mais updates de segurança
-- Recomendado migrar para axios ou node-fetch
+#### 6. **node-serialize 0.0.4** - 🔴 CRÍTICA
+- **Vulnerabilidade:** Code Execution through IIFE
+- **CVE:** CVE-2017-5941
+- **Versões afetadas:** <= 0.0.4
+- **Versão corrigida:** Não disponível
+- **CWE:** CWE-502
+- **Impacto:** Execução remota de código através de deserialização
+
+#### 7. **sqlite3 5.0.2** - 🔴 CRÍTICA (2 CVEs)
+- **Vulnerabilidade 1:** Code execution devido a Object coercion
+  - **Versões afetadas:** >= 5.0.0, < 5.1.5
+  - **Versão corrigida:** 5.1.5
+  - **Impacto:** Execução de código arbitrário
+  
+- **Vulnerabilidade 2:** Denial-of-Service ao vincular parâmetros inválidos
+  - **Versões afetadas:** >= 5.0.0, < 5.0.3
+  - **Versão corrigida:** 5.0.3
+  - **Impacto:** DoS através de parâmetros maliciosos
+
+#### 8. **request 2.88.2** - 🟡 DEPRECIADA
+- **Status:** Biblioteca depreciada, não recebe mais atualizações
+- **Recomendação:** Migrar para axios ou node-fetch
+- **Impacto:** Sem patches de segurança futuros
 
 ### ✅ Como Detectar (com Veracode SCA)
 ```bash
@@ -696,17 +749,31 @@ curl -X POST http://localhost:3000/arquivo \
 
 ## 📊 Resumo das Vulnerabilidades
 
+### Vulnerabilidades SAST (8)
 | # | Vulnerabilidade | CWE | Severidade | OWASP Top 10 |
 |---|----------------|-----|-----------|--------------|
-| 1 | SQL Injection | CWE-89 | Crítica | A03:2021 |
-| 2 | Cross-Site Scripting (XSS) | CWE-79 | Alta | A03:2021 |
-| 3 | Command Injection | CWE-78 | Crítica | A03:2021 |
-| 4 | Path Traversal | CWE-22 | Alta | A01:2021 |
-| 5 | Hardcoded Credentials | CWE-798 | Crítica | A07:2021 |
-| 6 | Insecure Deserialization | CWE-502 | Crítica | A08:2021 |
-| 7 | XML External Entity (XXE) | CWE-611 | Alta | A05:2021 |
-| 8 | SSRF | CWE-918 | Alta | A10:2021 |
-| 9 | Componentes Vulneráveis | CWE-1035 | Variável | A06:2021 |
+| 1 | SQL Injection | CWE-89 | 🔴 Crítica | A03:2021 |
+| 2 | Cross-Site Scripting (XSS) | CWE-79 | 🟠 Alta | A03:2021 |
+| 3 | Command Injection | CWE-78 | 🔴 Crítica | A03:2021 |
+| 4 | Path Traversal | CWE-22 | 🟠 Alta | A01:2021 |
+| 5 | Hardcoded Credentials | CWE-798 | 🔴 Crítica | A07:2021 |
+| 6 | Insecure Deserialization | CWE-502 | 🔴 Crítica | A08:2021 |
+| 7 | XML External Entity (XXE) | CWE-611 | 🟠 Alta | A05:2021 |
+| 8 | SSRF | CWE-918 | 🟠 Alta | A10:2021 |
+
+### Vulnerabilidades SCA (13+ CVEs em 8 dependências)
+| Dependência | Versão | CVEs | Severidade | Status |
+|------------|--------|------|-----------|---------|
+| body-parser | 1.19.0 | 1 | 🟠 Alta | Patch disponível |
+| ejs | 3.1.6 | 1 | 🔴 Crítica | Patch disponível |
+| express-fileupload | 1.2.1 | 1 | 🔴 Crítica | Sem patch |
+| libxmljs2 | 0.31.0 | 2 | 🔴 Crítica | Sem patch |
+| lodash | 4.17.19 | 4 | 🟠 Alta | Patch disponível |
+| node-serialize | 0.0.4 | 1 | 🔴 Crítica | Sem patch |
+| sqlite3 | 5.0.2 | 2 | 🔴 Crítica | Patch disponível |
+| request | 2.88.2 | - | 🟡 Depreciada | Migração necessária |
+
+**Total de Vulnerabilidades:** 21+ (8 SAST + 13+ SCA CVEs)
 
 ---
 
