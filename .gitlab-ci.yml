@@ -1,0 +1,43 @@
+# 1. Definimos as etapas da nossa linha de montagem
+stages:
+  - build
+  - security
+
+# 2. Primeira tarefa: Preparar o terreno
+empacotar_projeto:
+  stage: build
+  image: node:20 # O GitLab vai baixar um Linux virgem já com Node 20
+  script:
+    - echo "Instalando dependências (ignorando compilações complexas)..."
+    - npm install --ignore-scripts
+    
+    - echo "Instalando a ferramenta de ZIP no Linux..."
+    - apt-get update && apt-get install -y zip
+    
+    - echo "Zipando o código..."
+    - zip -q -r app-code.zip . -x "*.git*"
+  
+  # Como os contêineres morrem após o uso, o 'artifacts' é o "correio".
+  # Ele guarda o app-code.zip e entrega para a próxima tarefa.
+  artifacts:
+    paths:
+      - app-code.zip
+    expire_in: 1 day
+
+# 3. Segunda tarefa: O motor do Veracode
+veracode_scan:
+  stage: security
+  image: eclipse-temurin:21-jdk # O GitLab vai baixar um Linux virgem já com Java 21!
+  dependencies:
+    - empacotar_projeto # Garante que vai pegar o artefato (zip) da etapa anterior
+  script:
+    - echo "Preparando ambiente para download..."
+    - apt-get update && apt-get install -y curl
+    
+    - echo "Baixando o motor do Veracode..."
+    - curl -sS -o veracode-wrapper.jar https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/24.2.14.0/vosp-api-wrappers-java-24.2.14.0.jar
+    
+    - echo "Iniciando Upload e Scan..."
+    # Reparou? É EXATAMENTE o mesmo comando ninja que usamos no Azure!
+    # A diferença é a variável $CI_PIPELINE_IID que é o número do build no GitLab
+    - java -jar veracode-wrapper.jar -action uploadandscan -vid $VERACODE_API_ID -vkey $VERACODE_API_KEY -appname "NodeApp-GitLab" -createprofile true -version "GitLab-Build-$CI_PIPELINE_IID" -filepath app-code.zip -autoscan true -deleteincompletescan true
